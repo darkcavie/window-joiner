@@ -1,4 +1,4 @@
-package org.horus.entitybuilder;
+package org.horus.utils.entitybuilder;
 
 import static java.util.Objects.requireNonNull;
 

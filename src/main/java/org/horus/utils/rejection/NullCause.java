@@ -1,4 +1,4 @@
-package org.horus.rejection;
+package org.horus.utils.rejection;
 
 class NullCause implements Cause {
 

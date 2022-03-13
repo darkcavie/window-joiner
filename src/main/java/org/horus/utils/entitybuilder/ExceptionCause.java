@@ -1,6 +1,6 @@
-package org.horus.entitybuilder;
+package org.horus.utils.entitybuilder;
 
-import org.horus.rejection.Cause;
+import org.horus.utils.rejection.Cause;
 
 import java.util.Optional;
 

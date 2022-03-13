@@ -1,11 +1,10 @@
-package org.horus.entitybuilder;
+package org.horus.utils.entitybuilder;
 
-import org.horus.rejection.Cause;
-import org.horus.rejection.Rejection;
-import org.horus.rejection.RejectionConsumer;
+import org.horus.utils.rejection.Cause;
+import org.horus.utils.rejection.Rejection;
+import org.horus.utils.rejection.RejectionConsumer;
 import org.slf4j.Logger;
 
-import java.time.DateTimeException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

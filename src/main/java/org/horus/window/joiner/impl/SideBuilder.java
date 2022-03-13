@@ -1,6 +1,6 @@
 package org.horus.window.joiner.impl;
 
-import org.horus.entitybuilder.EntityBuilder;
+import org.horus.utils.entitybuilder.EntityBuilder;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.entities.JoinSide;
 

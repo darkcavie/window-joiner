@@ -1,7 +1,7 @@
-package org.horus.entitybuilder;
+package org.horus.utils.entitybuilder;
 
-import org.horus.rejection.Cause;
-import org.horus.rejection.Rejection;
+import org.horus.utils.rejection.Cause;
+import org.horus.utils.rejection.Rejection;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
