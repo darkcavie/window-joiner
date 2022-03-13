@@ -58,6 +58,10 @@ public abstract class EntityBuilder<E, T> {
         final E entity;
 
         entity = requireNonNull(constructor, "The constructor must have been set").get();
+        if(source == null) {
+            sendRejection(Rejection.nullRejection());
+            return Optional.empty();
+        }
         try {
             assemble(entity, source);
             if (causes.isEmpty()) {
@@ -72,6 +76,13 @@ public abstract class EntityBuilder<E, T> {
         return Optional.empty();
     }
 
+    /**
+     * Calls for load values into the entity from the source
+     * see puts method
+     * @see #put(String, Object, Consumer)
+     * @param entity A not null entity
+     * @param source A not null contract source
+     */
     protected abstract void assemble(E entity, T source);
 
     protected void sendRejection(Rejection<T> rejection) {

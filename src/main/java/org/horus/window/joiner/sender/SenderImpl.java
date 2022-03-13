@@ -6,10 +6,14 @@ import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.impl.Sender;
 import org.horus.window.joiner.impl.TimeWindowedBiConsumer;
 import org.horus.window.joiner.impl.TimeWindowedConsumer;
+import org.slf4j.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class SenderImpl<K> implements Sender<K> {
+
+    private static final Logger LOG = getLogger(SenderImpl.class);
 
     private TimeWindowedBiConsumer<K> joinedConsumer;
 
@@ -45,6 +49,7 @@ public class SenderImpl<K> implements Sender<K> {
         if(rightRejectedConsumer != null) {
             rightRejectedConsumer.accept(rightSide);
         }
+        LOG.info("There is no right rejection consumer. Rejection {}", rightSide);
     }
 
     @Override
@@ -52,16 +57,18 @@ public class SenderImpl<K> implements Sender<K> {
         if(leftRejectedConsumer != null) {
             leftRejectedConsumer.accept(leftSide);
         }
-        //TODO: add logs
+        LOG.info("There is no left rejection consumer. Rejection {}", leftSide);
     }
 
     @Override
     public void bounceLeftSide(TimeWindowed<K> leftSide) {
+        LOG.debug("Bouncing key {}", leftSide.getKey());
         bounceConsumer.accept(leftSide);
     }
 
     @Override
     public void sendJoin(TimeWindowed<K> leftSide, TimeWindowed<K> rightSide) {
+        LOG.info("Sending join with key {}", leftSide.getKey());
         joinedConsumer.accept(leftSide, rightSide);
     }
 

@@ -2,11 +2,14 @@ package org.horus.window.joiner.impl;
 
 import org.horus.rejection.Rejection;
 import org.horus.window.joiner.TimeWindowed;
+import org.horus.window.joiner.entities.LeftSide;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.time.Instant;
 
+import static org.horus.window.joiner.TimeWindowedTest.mockWindowed;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JoinerImplTest {
@@ -151,6 +154,28 @@ class JoinerImplTest {
         assertEquals(1, sender.count());
     }
 
+    @Test
+    void processReceivedLeftSide() {
+        final LeftSide<String> original;
+
+        original = new LeftSide<>();
+        original.setKey("mockKey");
+        original.setTimestamp(Instant.now());
+        original.setPayLoad(new ByteArrayInputStream(new byte[0]));
+        sender = new MockSender() {
+            @Override
+            public void sendJoin(TimeWindowed<String> leftSide, TimeWindowed<String> rightSide) {
+                inc();
+                assertEquals(original.getKey(), leftSide.getKey());
+                assertEquals(original.getTimestamp().toEpochMilli(), leftSide.getTimestamp());
+                assertNotNull(leftSide.getPayLoad());
+            }
+        };
+        polish(10_000L, new DuplicateMockStorage());
+        joiner.processReceivedLeftSide(original);
+        assertEquals(2, sender.count());
+    }
+
     private void polish() {
         polish(0, new MockStorage());
     }
@@ -162,29 +187,5 @@ class JoinerImplTest {
         joiner.postConstruct();
     }
 
-    TimeWindowed<String> mockWindowed(final String key, final long time) {
-        return new TimeWindowed<>() {
-            @Override
-            public String getKey() {
-                return key;
-            }
-
-            @Override
-            public InputStream getPayLoad() {
-                return InputStream.nullInputStream();
-            }
-
-            @Override
-            public long getTimestamp() {
-                return time;
-            }
-
-            @Override
-            public boolean equals(Object other) {
-                return unCastedEquals(other);
-            }
-
-        };
-    }
 
 }

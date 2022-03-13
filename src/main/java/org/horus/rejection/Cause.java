@@ -4,10 +4,6 @@ import java.util.Optional;
 
 public interface Cause {
 
-    static Cause singleCause(String cause, String formattedMessage) {
-        return singleCause(cause, formattedMessage);
-    }
-
     String getCause();
 
     String getFormattedMessage();
