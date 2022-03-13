@@ -3,6 +3,7 @@ package org.horus.window.joiner.sender;
 import org.horus.rejection.Rejection;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.TimeWindowedTest;
+import org.horus.window.joiner.impl.sender.SenderImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

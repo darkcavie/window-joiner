@@ -3,7 +3,6 @@ package org.horus.window.joiner.impl;
 import org.horus.rejection.Rejection;
 import org.horus.window.joiner.JoinerUseCase;
 import org.horus.window.joiner.TimeWindowed;
-import org.horus.window.joiner.WindowConf;
 import org.horus.window.joiner.entities.JoinSide;
 import org.horus.window.joiner.entities.LeftSide;
 import org.slf4j.Logger;

@@ -1,10 +1,9 @@
-package org.horus.window.joiner.sender;
+package org.horus.window.joiner.impl.sender;
 
 import org.horus.rejection.Rejection;
 import org.horus.rejection.RejectionConsumer;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.impl.Sender;
-import org.horus.window.joiner.impl.TimeWindowedBiConsumer;
 import org.horus.window.joiner.impl.TimeWindowedConsumer;
 import org.slf4j.Logger;
 

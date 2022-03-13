@@ -1,4 +1,4 @@
-package org.horus.window.joiner;
+package org.horus.window.joiner.impl;
 
 public interface WindowConf {
 
