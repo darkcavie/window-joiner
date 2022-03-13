@@ -124,9 +124,34 @@ class SenderImplTest {
 
     @Test
     void bounceLeftSide() {
+        final TimeWindowed<String> original;
+        final AtomicInteger counter;
+
+        original = TimeWindowedTest.mockWindowed("mockKey", System.currentTimeMillis());
+        counter = new AtomicInteger();
+        sender.setBounceConsumer(t -> {
+            counter.incrementAndGet();
+            assertEquals(original, t);
+        });
+        sender.bounceLeftSide(original);
+        assertEquals(1, counter.get());
     }
 
     @Test
     void sendJoin() {
+        final TimeWindowed<String> originalLeft, originalRight;
+        final AtomicInteger counter;
+
+        originalLeft = TimeWindowedTest.mockWindowed("mockKey", System.currentTimeMillis());
+        originalRight = TimeWindowedTest.mockWindowed("mockKey", System.currentTimeMillis() - 100);
+        counter = new AtomicInteger();
+        sender.setJoinedConsumer((left, right) -> {
+            counter.incrementAndGet();
+            assertEquals(originalLeft, left);
+            assertEquals(originalRight, right);
+        });
+        sender.sendJoin(originalLeft, originalRight);
+        assertEquals(1, counter.get());
     }
+
 }

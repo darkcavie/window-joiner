@@ -34,7 +34,7 @@ public abstract class EntityBuilder<E, T> {
     }
 
     public EntityBuilder<E, T> setConstructor(Supplier<E> constructor) {
-        this.constructor = requireNonNull(constructor);
+        this.constructor = requireNonNull(constructor, "The constructor is mandatory");
         return this;
     }
 
@@ -62,17 +62,12 @@ public abstract class EntityBuilder<E, T> {
             sendRejection(Rejection.nullRejection());
             return Optional.empty();
         }
-        try {
-            assemble(entity, source);
-            if (causes.isEmpty()) {
-                return Optional.of(entity);
-            }
-            rejection = new RejectionImpl<>(source, List.copyOf(causes));
-            sendRejection(rejection);
-        } catch(NullPointerException npex) {
-            LOG.error("Null pointer error building entity", npex);
-            sendRejection(Rejection.nullRejection());
+        assemble(entity, source);
+        if (causes.isEmpty()) {
+            return Optional.of(entity);
         }
+        rejection = new RejectionImpl<>(source, List.copyOf(causes));
+        sendRejection(rejection);
         return Optional.empty();
     }
 
@@ -86,10 +81,7 @@ public abstract class EntityBuilder<E, T> {
     protected abstract void assemble(E entity, T source);
 
     protected void sendRejection(Rejection<T> rejection) {
-        if(rejection == null) {
-            LOG.warn("Received null rejection");
-            return;
-        }
+        requireNonNull(rejection, "Parameter rejection is mandatory");
         if(rejectionConsumers.isEmpty()) {
             LOG.error("Not published rejection: {}", rejection);
             return;
@@ -113,13 +105,8 @@ public abstract class EntityBuilder<E, T> {
     protected void putInstantFromMillis(final String fieldName, final long millis, final Consumer<Instant> setter) {
         final Instant instant;
 
-        try {
-            instant = Instant.ofEpochMilli(millis);
-            put(fieldName, instant, setter);
-        } catch(DateTimeException dtex) {
-            LOG.warn("Error transforming time as millis {} in field {} with message {}",
-                    millis, fieldName, dtex.getMessage());
-        }
+        instant = Instant.ofEpochMilli(millis);
+        put(fieldName, instant, setter);
     }
 
 }
