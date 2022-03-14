@@ -2,8 +2,10 @@ package org.horus.window.joiner.entities;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,6 +35,20 @@ class JoinSideTest {
         joinSide.setKey("mockKey");
         joinSide.setTimestamp(tenSecondsAgo);
         assertFalse(joinSide.isInWindow(5000));
+    }
+
+    @Test
+    void setPayLoadException() {
+        final InputStream is;
+
+        is = new InputStream(){
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Mock exception");
+            }
+        };
+        joinSide = new JoinSide<>();
+        assertThrows(IllegalArgumentException.class, () -> joinSide.setPayLoad(is));
     }
 
 }
