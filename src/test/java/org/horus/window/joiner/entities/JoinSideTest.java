@@ -1,8 +1,8 @@
 package org.horus.window.joiner.entities;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
@@ -13,13 +13,17 @@ class JoinSideTest {
 
     private JoinSide<String> joinSide;
 
+    @BeforeEach
+    void setup() {
+        joinSide = new JoinSide<>();
+    }
+
     @Test
     void isInWindow() {
         final Instant now, tenSecondsAgo;
 
         now = Instant.now();
         tenSecondsAgo = now.minusSeconds(10);
-        joinSide = new JoinSide<>();
         joinSide.setKey("mockKey");
         joinSide.setTimestamp(tenSecondsAgo);
         assertTrue(joinSide.isInWindow(20000));
@@ -31,7 +35,6 @@ class JoinSideTest {
 
         now = Instant.now();
         tenSecondsAgo = now.minusSeconds(10);
-        joinSide = new JoinSide<>();
         joinSide.setKey("mockKey");
         joinSide.setTimestamp(tenSecondsAgo);
         assertFalse(joinSide.isInWindow(5000));
@@ -47,8 +50,18 @@ class JoinSideTest {
                 throw new IOException("Mock exception");
             }
         };
-        joinSide = new JoinSide<>();
         assertThrows(IllegalArgumentException.class, () -> joinSide.setPayLoad(is));
+    }
+
+    @Test
+    void isInWindowNoTimestampFail() {
+        assertThrows(IllegalStateException.class, () -> joinSide.isInWindow(0L));
+    }
+
+    @Test
+    void isInWindowNegativePeriodFail() {
+        joinSide.setTimestamp(Instant.now());
+        assertThrows(IllegalArgumentException.class, () -> joinSide.isInWindow(-1L));
     }
 
 }

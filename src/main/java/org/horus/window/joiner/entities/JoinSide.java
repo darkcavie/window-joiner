@@ -21,29 +21,36 @@ public class JoinSide<K> {
     private byte[] payLoad;
 
     public boolean isInWindow(long period) {
+        if(timestamp == null) {
+            throw new IllegalStateException("The timestamp must exist before evaluation");
+        }
+        if(period < 0) {
+            throw new IllegalArgumentException("The period must be positive");
+        }
         return Instant.now()
                 .minusMillis(period)
                 .isBefore(timestamp);
     }
 
     public K getKey() {
-        return key;
+        return requireNonNull(key);
     }
 
     public Instant getTimestamp() {
-        return timestamp;
+        return requireNonNull(timestamp);
     }
 
     public InputStream getPayLoad() {
+        requireNonNull(payLoad, "Trying to get a payload without charge it before");
         return new ByteArrayInputStream(payLoad);
     }
 
     public void setKey(K key) {
-        this.key = requireNonNull(key);
+        this.key = requireNonNull(key, "The key can not be null");
     }
 
     public void setTimestamp(Instant timestamp) {
-        this.timestamp = requireNonNull(timestamp);
+        this.timestamp = requireNonNull(timestamp, "The timestamp can not be null");
     }
 
     public void setPayLoad(InputStream payLoad) {

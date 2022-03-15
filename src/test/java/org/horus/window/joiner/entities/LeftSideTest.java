@@ -24,4 +24,9 @@ class LeftSideTest {
         assertFalse(leftSide.isaMatchIn(0));
     }
 
+    @Test
+    void isaMatchInNegativePeriodFails() {
+        assertThrows(IllegalArgumentException.class, () -> leftSide.isaMatchIn(-1));
+    }
+
 }
