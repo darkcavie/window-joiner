@@ -7,6 +7,9 @@ import org.horus.window.joiner.impl.Sender;
 import org.horus.window.joiner.impl.TimeWindowedConsumer;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -61,13 +64,27 @@ public class SenderImpl<K> implements Sender<K> {
 
     @Override
     public void bounceLeftSide(TimeWindowed<K> leftSide) {
+        requireNonNull(leftSide,"The bounced side is mandatory");
         LOG.debug("Bouncing key {}", leftSide.getKey());
         bounceConsumer.accept(leftSide);
     }
 
     @Override
-    public void sendJoin(TimeWindowed<K> leftSide, TimeWindowed<K> rightSide) {
-        LOG.info("Sending join with key {}", leftSide.getKey());
+    public void sendJoin(final TimeWindowed<K> leftSide, final TimeWindowed<K> rightSide) {
+        final K key;
+        final Supplier<K> orGet;
+
+        orGet = () -> Optional.ofNullable(rightSide)
+                .map(TimeWindowed::getKey)
+                .orElse(null);
+        key = Optional.ofNullable(leftSide)
+                .map(TimeWindowed::getKey)
+                .orElseGet(orGet);
+        if(key == null) {
+            LOG.warn("Received null in both sides");
+            return;
+        }
+        LOG.info("Sending join with key {}", key);
         joinedConsumer.accept(leftSide, rightSide);
     }
 

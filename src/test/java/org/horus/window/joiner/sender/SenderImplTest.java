@@ -155,4 +155,41 @@ class SenderImplTest {
         assertEquals(1, counter.get());
     }
 
+    @Test
+    void sendJointRightNull() {
+        final TimeWindowed<String> originalLeft;
+        final AtomicInteger counter;
+
+        originalLeft = TimeWindowedTest.mockWindowed("mockKey", System.currentTimeMillis());
+        counter = new AtomicInteger();
+        sender.setJoinedConsumer((left, right) -> {
+            counter.incrementAndGet();
+            assertEquals(originalLeft, left);
+            assertNull(right);
+        });
+        sender.sendJoin(originalLeft, null);
+        assertEquals(1, counter.get());
+    }
+
+    @Test
+    void sendJointLeftNull() {
+        final TimeWindowed<String> originalRight;
+        final AtomicInteger counter;
+
+        originalRight = TimeWindowedTest.mockWindowed("mockKey", System.currentTimeMillis() - 100);
+        counter = new AtomicInteger();
+        sender.setJoinedConsumer((left, right) -> {
+            counter.incrementAndGet();
+            assertNull(left);
+            assertEquals(originalRight, right);
+        });
+        sender.sendJoin(null, originalRight);
+        assertEquals(1, counter.get());
+    }
+
+    @Test
+    void sendJointBothNull() {
+        sender.setJoinedConsumer((left, right) -> fail("It must not send"));
+        sender.sendJoin(null, null);
+    }
 }
