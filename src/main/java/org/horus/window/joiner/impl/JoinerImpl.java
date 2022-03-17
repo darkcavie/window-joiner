@@ -1,6 +1,6 @@
 package org.horus.window.joiner.impl;
 
-import org.horus.utils.rejection.Rejection;
+import org.horus.rejection.Rejection;
 import org.horus.window.joiner.JoinerUseCase;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.entities.JoinSide;

@@ -4,22 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>org.horus</groupId>
+    <artifactId>window-joiner</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>1.7.36</slf4j.version>
         <jupiter.version>5.8.2</jupiter.version>
+        <common-version>0.1-SNAPSHOT</common-version>
     </properties>
-
-    <groupId>org.horus</groupId>
-    <artifactId>window-joiner</artifactId>
-    <version>0.1-SNAPSHOT</version>
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <groupId>${groupId}</groupId>
+            <artifactId>horus-common</artifactId>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -74,6 +74,11 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                        <configuration>
+                            <rules>
+
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

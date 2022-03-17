@@ -1,6 +1,6 @@
 package org.horus.window.joiner.impl;
 
-import org.horus.utils.rejection.Rejection;
+import org.horus.rejection.Rejection;
 import org.horus.window.joiner.TimeWindowed;
 
 public interface Sender<K> {

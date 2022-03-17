@@ -1,6 +1,6 @@
 package org.horus.window.joiner.sender;
 
-import org.horus.utils.rejection.Rejection;
+import org.horus.rejection.Rejection;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.TimeWindowedTest;
 import org.horus.window.joiner.impl.sender.SenderImpl;
