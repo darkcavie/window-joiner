@@ -76,7 +76,7 @@ public class JoinerImpl<K> implements JoinerUseCase<K> {
         LOG.debug("Received left side with key {}", key);
         if(leftSide.isInWindow(windowConf.getPeriod())) {
             founded = new AtomicInteger();
-            rightStorage.search(key, rightSide -> {
+            rightStorage.getByKey(key, rightSide -> {
                 founded.incrementAndGet();
                 tryJoin(leftSide, rightSide);
             });

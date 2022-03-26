@@ -9,7 +9,7 @@ class MockStorage implements WindowedStorage<String> {
     }
 
     @Override
-    public void search(String key, TimeWindowedConsumer<String> consumer) {
+    public void getByKey(String key, TimeWindowedConsumer<String> consumer) {
     }
 
 }

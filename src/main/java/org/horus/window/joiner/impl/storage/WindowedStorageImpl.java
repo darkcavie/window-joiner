@@ -12,7 +12,7 @@ public class WindowedStorageImpl<K> implements WindowedStorage<K> {
     }
 
     @Override
-    public void search(K key, TimeWindowedConsumer<K> consumer) {
+    public void getByKey(K key, TimeWindowedConsumer<K> consumer) {
     }
 
 }
