@@ -7,9 +7,8 @@ import java.io.InputStream;
 class OldMockStorage extends MockStorage {
 
     @Override
-    public int search(String key, TimeWindowedConsumer<String> consumer) {
+    public void search(String key, TimeWindowedConsumer<String> consumer) {
         consumer.accept(buildWithKey(key));
-        return 1;
     }
 
     TimeWindowed<String> buildWithKey(final String key) {

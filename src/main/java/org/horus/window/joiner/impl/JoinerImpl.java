@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -69,21 +70,26 @@ public class JoinerImpl<K> implements JoinerUseCase<K> {
 
     void processReceivedLeftSide(final LeftSide<K> leftSide) {
         final K key;
-        final int founded;
+        final AtomicInteger founded;
 
         key = leftSide.getKey();
         LOG.debug("Received left side with key {}", key);
         if(leftSide.isInWindow(windowConf.getPeriod())) {
-            founded = rightStorage.search(key, rightSide -> tryJoin(leftSide, rightSide));
-            if(founded == 0) {
-                sender.bounceLeftSide(adapt(leftSide));
-                return;
+            founded = new AtomicInteger();
+            rightStorage.search(key, rightSide -> {
+                founded.incrementAndGet();
+                tryJoin(leftSide, rightSide);
+            });
+            switch(founded.get()) {
+                case 0:
+                    sender.bounceLeftSide(adapt(leftSide));
+                    break;
+                case 1:
+                    LOG.debug("Founded right join with key {}", key);
+                    break;
+                default:
+                    LOG.warn("Founded {} matches for the key {}", founded, key);
             }
-            if(founded == 1) {
-                LOG.debug("Founded right join with key {}", key);
-                return;
-            }
-            LOG.warn("Founded {} matches for the key {}", founded, key);
             return;
         }
         sender.rejectLeftSide(Rejection.singleCause(adapt(leftSide), "Out of Window",

@@ -6,6 +6,6 @@ public interface WindowedStorage<K> {
 
     void add(TimeWindowed<K> timeWindowed);
 
-    int search(K key, TimeWindowedConsumer<K> consumer);
+    void search(K key, TimeWindowedConsumer<K> consumer);
 
 }

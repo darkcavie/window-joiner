@@ -7,13 +7,12 @@ import java.io.InputStream;
 class SingleMockStorage extends MockStorage {
 
     @Override
-    public int search(String key, TimeWindowedConsumer<String> consumer) {
+    public void search(String key, TimeWindowedConsumer<String> consumer) {
         consumer.accept(buildWithKey(key));
-        return 1;
     }
 
     TimeWindowed<String> buildWithKey(final String key) {
-        return new TimeWindowed<String>() {
+        return new TimeWindowed<>() {
             @Override
             public String getKey() {
                 return key;
