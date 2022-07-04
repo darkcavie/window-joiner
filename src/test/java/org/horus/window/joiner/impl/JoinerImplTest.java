@@ -1,13 +1,16 @@
 package org.horus.window.joiner.impl;
 
+import org.horus.rejection.Cause;
 import org.horus.rejection.Rejection;
 import org.horus.window.joiner.TimeWindowed;
+import org.horus.window.joiner.entities.JoinSide;
 import org.horus.window.joiner.entities.LeftSide;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.horus.window.joiner.TimeWindowedTest.mockWindowed;
 import static org.junit.jupiter.api.Assertions.*;
@@ -187,5 +190,59 @@ class JoinerImplTest {
         joiner.postConstruct();
     }
 
+    @Test
+    void tryMatchRightSideCatched() {
+        final LeftSide<String> leftSide;
+        final AtomicInteger counter;
+
+        leftSide = new LeftSide<>();
+        leftSide.setKey("mockKey");
+        counter = new AtomicInteger(0);
+        joiner.setRightStorage(new MockFailStorage());
+        joiner.setSender(new MockSender() {
+            @Override
+            public void rejectLeftSide(Rejection<TimeWindowed<String>> rejection) {
+                final TimeWindowed<String> leftSide;
+
+                counter.incrementAndGet();
+                assertNotNull(rejection);
+                leftSide = rejection.getRejected();
+                assertNotNull(leftSide);
+                assertEquals("mockKey", leftSide.getKey());
+            }
+        });
+        joiner.tryMatchRightSide(leftSide);
+        assertEquals(1, counter.get());
+    }
+
+    @Test
+    void tryProcessReceivedRightSideCatched() {
+        final JoinSide<String> rightSide;
+        final AtomicInteger counter;
+
+        rightSide = new JoinSide<>();
+        rightSide.setKey("mockKey");
+        rightSide.setTimestamp(Instant.now());
+        counter = new AtomicInteger(0);
+        joiner.setRightStorage(new MockFailStorage());
+        joiner.setWindowConf(() -> 5000L);
+        joiner.setSender(new MockSender() {
+            @Override
+            public void rejectRightSide(Rejection<TimeWindowed<String>> rejection) {
+                final TimeWindowed<String> rightSide;
+                final Cause cause;
+
+                assertNotNull(rejection);
+                cause = rejection.causeStream().findFirst().orElseThrow();
+                assertEquals("right.window.error", cause.getFormattedMessage());
+                rightSide = rejection.getRejected();
+                assertNotNull(rightSide);
+                assertEquals("mockKey", rightSide.getKey());
+                counter.incrementAndGet();
+            }
+        });
+        joiner.tryProcessReceivedRightSide(rightSide);
+        assertEquals(1, counter.get());
+    }
 
 }

@@ -1,6 +1,7 @@
 package org.horus.window.joiner.impl.storage;
 
 import org.horus.storage.Storage;
+import org.horus.storage.StorageException;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.impl.TimeWindowedConsumer;
 import org.horus.window.joiner.impl.WindowConf;
@@ -28,13 +29,13 @@ public class WindowedStorageImpl<K> implements WindowedStorage<K> {
     }
 
     @Override
-    public void add(TimeWindowed<K> timeWindowed) {
+    public void add(TimeWindowed<K> timeWindowed) throws StorageException {
+        storage.upsert(timeWindowed.getKey(), timeWindowed);
     }
 
     @Override
-    public void getByKey(K key, TimeWindowedConsumer<K> consumer) {
-
+    public void getByKey(K key, TimeWindowedConsumer<K> consumer) throws StorageException {
+        storage.getByKey(key, consumer);
     }
-
 
 }

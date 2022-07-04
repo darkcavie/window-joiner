@@ -1,6 +1,7 @@
 package org.horus.window.joiner.impl;
 
 import org.horus.rejection.Rejection;
+import org.horus.storage.StorageException;
 import org.horus.window.joiner.JoinerUseCase;
 import org.horus.window.joiner.TimeWindowed;
 import org.horus.window.joiner.entities.JoinSide;
@@ -33,7 +34,7 @@ public class JoinerImpl<K> implements JoinerUseCase<K> {
     }
 
     public void setSender(Sender<K> sender) {
-        this.sender = requireNonNull(sender, "The sender dependency is mandatoy");
+        this.sender = requireNonNull(sender, "The sender dependency is mandatory");
     }
 
     public void postConstruct() {
@@ -54,73 +55,65 @@ public class JoinerImpl<K> implements JoinerUseCase<K> {
                 .ifPresent(this::processReceivedLeftSide);
     }
 
-    @Override
-    public void receiveRightSide(TimeWindowed<K> rightSide) {
-        LOG.debug("Receive right join started");
-        tryBuildRightSide(rightSide).ifPresent(this::processReceivedRightSide);
-    }
-
-    Optional<JoinSide<K>> tryBuildRightSide(TimeWindowed<K> rightSide) {
-        return new SideBuilder<K, JoinSide<K>, TimeWindowed<K>>()
-                .addRejectionConsumer(sender::rejectRightSide)
-                .loadSource(rightSide)
-                .setConstructor(JoinSide::new)
-                .build();
-    }
-
     void processReceivedLeftSide(final LeftSide<K> leftSide) {
-        final K key;
-        final AtomicInteger founded;
-
-        key = leftSide.getKey();
-        LOG.debug("Received left side with key {}", key);
+        LOG.debug("Received left side with key {}", leftSide.getKey());
         if(leftSide.isInWindow(windowConf.getPeriod())) {
-            founded = new AtomicInteger();
-            rightStorage.getByKey(key, rightSide -> {
-                founded.incrementAndGet();
-                tryJoin(leftSide, rightSide);
-            });
-            switch(founded.get()) {
-                case 0:
-                    sender.bounceLeftSide(adapt(leftSide));
-                    break;
-                case 1:
-                    LOG.debug("Founded right join with key {}", key);
-                    break;
-                default:
-                    LOG.warn("Founded {} matches for the key {}", founded, key);
-            }
+            tryMatchRightSide(leftSide);
             return;
         }
-        sender.rejectLeftSide(Rejection.singleCause(adapt(leftSide), "Out of Window",
-                "left.window.out"));
+        rejectLeftSide(leftSide, "Out of Window", "left.window.out");
+    }
+
+    void tryMatchRightSide(final LeftSide<K> leftSide) {
+        try {
+            matchRightSide(leftSide);
+        } catch (StorageException e) {
+            rejectLeftSide(leftSide, "Error searching right side", "left.window.right.error");
+        }
+    }
+
+    void matchRightSide(final LeftSide<K> leftSide) throws StorageException {
+        final AtomicInteger founded;
+        final K key;
+
+        key = leftSide.getKey();
+        founded = new AtomicInteger();
+        rightStorage.getByKey(key, rightSide -> {
+            founded.incrementAndGet();
+            tryJoin(leftSide, rightSide);
+        });
+        switch(founded.get()) {
+            case 0:
+                sender.bounceLeftSide(adapt(leftSide));
+                break;
+            case 1:
+                LOG.debug("Founded right join with key {}", key);
+                break;
+            default:
+                LOG.warn("Founded {} matches for the key {}", founded, key);
+        }
     }
 
     void tryJoin(final LeftSide<K> leftSide, final TimeWindowed<K> rightTimeWindowed) {
         final TimeWindowed<K> adaptedLeftTime;
-        final Rejection<TimeWindowed<K>> rejection;
 
         tryBuildRightSide(rightTimeWindowed).ifPresent(leftSide::setRightSide);
-        adaptedLeftTime = adapt(leftSide);
         if(leftSide.isaMatchIn(windowConf.getPeriod())) {
+            adaptedLeftTime = adapt(leftSide);
             sender.sendJoin(adaptedLeftTime, rightTimeWindowed);
             return;
         }
-        rejection = Rejection.singleCause(adaptedLeftTime, "Not match", "left.match.not");
-        sender.rejectLeftSide(rejection);
+        rejectLeftSide(leftSide,"Not match", "left.match.not");
     }
 
-    void processReceivedRightSide(JoinSide<K> rightSide) {
-        final TimeWindowed<K> adaptedSide;
+    void rejectLeftSide(final LeftSide<K> leftSide, String cause, String formattedMessage) {
+        final TimeWindowed<K> timeWindowed;
         final Rejection<TimeWindowed<K>> rejection;
 
-        adaptedSide = adapt(rightSide);
-        if(rightSide.isInWindow(windowConf.getPeriod())) {
-            rightStorage.add(adaptedSide);
-            return;
-        }
-        rejection = Rejection.singleCause(adaptedSide, "Out of Window", "right.window.out");
-        sender.rejectRightSide(rejection);
+        LOG.info("Rejecting left side with key [{}] because {}", leftSide.getKey(), cause);
+        timeWindowed = adapt(leftSide);
+        rejection = Rejection.singleCause(timeWindowed, cause, formattedMessage);
+        sender.rejectLeftSide(rejection);
     }
 
     private TimeWindowed<K> adapt(JoinSide<K> leftSide) {
@@ -145,6 +138,48 @@ public class JoinerImpl<K> implements JoinerUseCase<K> {
                 return unCastedEquals(object);
             }
         };
+    }
+
+    @Override
+    public void receiveRightSide(TimeWindowed<K> rightSide) {
+        LOG.debug("Receive right join started");
+        tryBuildRightSide(rightSide).ifPresent(this::tryProcessReceivedRightSide);
+    }
+
+    Optional<JoinSide<K>> tryBuildRightSide(TimeWindowed<K> rightSide) {
+        return new SideBuilder<K, JoinSide<K>, TimeWindowed<K>>()
+                .addRejectionConsumer(sender::rejectRightSide)
+                .loadSource(rightSide)
+                .setConstructor(JoinSide::new)
+                .build();
+    }
+
+    void tryProcessReceivedRightSide(JoinSide<K> rightSide) {
+        try {
+            processReceivedRightSide(rightSide);
+        } catch (StorageException e) {
+            rejectRightSide(rightSide, "Error adding rightSide", "right.window.error");
+        }
+    }
+
+    void processReceivedRightSide(JoinSide<K> rightSide) throws StorageException {
+        final TimeWindowed<K> adaptedSide;
+
+        if(rightSide.isInWindow(windowConf.getPeriod())) {
+            adaptedSide = adapt(rightSide);
+            rightStorage.add(adaptedSide);
+            return;
+        }
+        rejectRightSide(rightSide, "Out of Window", "right.window.out");
+    }
+
+    void rejectRightSide(JoinSide<K> rightSide, String cause, String formattedMessage) {
+        final TimeWindowed<K> adaptedSide;
+        final Rejection<TimeWindowed<K>> rejection;
+
+        adaptedSide = adapt(rightSide);
+        rejection = Rejection.singleCause(adaptedSide, cause, formattedMessage);
+        sender.rejectRightSide(rejection);
     }
 
 }
